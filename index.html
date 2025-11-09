@@ -1,11 +1,10 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ME Timer</title>
 
-  <!-- System-Theme berücksichtigen -->
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000" />
@@ -44,7 +43,7 @@
 
     .timer {
       display: grid;
-      grid-template-columns: auto auto auto auto;
+      grid-template-columns: auto auto auto auto auto;
       gap: 14px;
       justify-content: center;
       align-items: end;
@@ -69,6 +68,7 @@
   <div class="block">
     <h2>ME seit:</h2>
     <div class="timer">
+      <div class="col"><div id="y1" class="num">0</div><div class="label">JAHREN</div></div>
       <div class="col"><div id="d1" class="num">0</div><div class="label">TAGEN</div></div>
       <div class="col"><div id="h1" class="num">00</div><div class="label">STUNDEN</div></div>
       <div class="col"><div id="m1" class="num">00</div><div class="label">MINUTEN</div></div>
@@ -79,6 +79,7 @@
   <div class="block">
     <h2>Very Severe ME seit:</h2>
     <div class="timer">
+      <div class="col"><div id="y2" class="num">0</div><div class="label">JAHREN</div></div>
       <div class="col"><div id="d2" class="num">0</div><div class="label">TAGEN</div></div>
       <div class="col"><div id="h2" class="num">00</div><div class="label">STUNDEN</div></div>
       <div class="col"><div id="m2" class="num">00</div><div class="label">MINUTEN</div></div>
@@ -87,17 +88,25 @@
   </div>
 
   <script>
-    const start1 = new Date("2022-12-07T13:45:00+01:00");
-    const start2 = new Date("2023-12-20T18:15:00+01:00");
+    const start1 = new Date("2022-12-10T12:00:00+01:00");
+    const start2 = new Date("2023-12-23T16:30:00+01:00");
     const pad = n => String(n).padStart(2, "0");
 
-    function draw(nowMs, start, id) {
-      const diff = Math.floor((nowMs - start.getTime()) / 1000);
-      const days = Math.floor(diff / 86400);
-      const hrs  = Math.floor((diff % 86400) / 3600);
-      const mins = Math.floor((diff % 3600) / 60);
-      const secs = diff % 60;
+    function draw(now, start, id) {
+      let diff = Math.floor((now - start.getTime()) / 1000);
+      const yearDiff = nowDate => nowDate.getFullYear() - start.getFullYear() - (nowDate < new Date(start).setFullYear(nowDate.getFullYear()) ? 1 : 0);
 
+      const years = yearDiff(new Date(now));
+      const startOfCurrentYear = new Date(start);
+      startOfCurrentYear.setFullYear(start.getFullYear() + years);
+
+      const secondsSinceYearStart = Math.floor((now - startOfCurrentYear.getTime()) / 1000);
+      const days = Math.floor(secondsSinceYearStart / 86400);
+      const hrs  = Math.floor((secondsSinceYearStart % 86400) / 3600);
+      const mins = Math.floor((secondsSinceYearStart % 3600) / 60);
+      const secs = secondsSinceYearStart % 60;
+
+      document.getElementById("y" + id).textContent = years;
       document.getElementById("d" + id).textContent = days;
       document.getElementById("h" + id).textContent = pad(hrs);
       document.getElementById("m" + id).textContent = pad(mins);
