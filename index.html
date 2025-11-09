@@ -33,34 +33,50 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 60px;
+      gap: 80px;
       padding: 20px;
       text-align: center;
     }
 
-    .block { display: flex; flex-direction: column; gap: 12px; }
-    h2 { margin: 0; font-size: clamp(18px, 4vw, 28px); font-weight: 700; }
+    .block {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(18px, 4vw, 30px);
+      font-weight: 700;
+    }
 
     .timer {
-      display: grid;
-      grid-template-columns: auto auto auto auto auto;
-      gap: 14px;
+      display: flex;
       justify-content: center;
+      flex-wrap: wrap;
+      gap: clamp(10px, 3vw, 40px);
       align-items: end;
     }
 
-    .col { display: flex; flex-direction: column; align-items: center; }
+    .col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 70px;
+    }
+
     .num {
-      font-size: clamp(24px, 10vw, 64px);
+      font-size: clamp(28px, 10vw, 72px);
       font-weight: 800;
       line-height: 1.05;
-      white-space: nowrap;
     }
+
     .label {
-      font-size: clamp(10px, 3vw, 16px);
+      font-size: clamp(12px, 3vw, 18px);
       color: var(--muted);
-      margin-top: 4px;
-      letter-spacing: 0.5px;
+      margin-top: 6px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
     }
   </style>
 </head>
@@ -68,22 +84,22 @@
   <div class="block">
     <h2>ME seit:</h2>
     <div class="timer">
-      <div class="col"><div id="y1" class="num">0</div><div class="label">JAHREN</div></div>
-      <div class="col"><div id="d1" class="num">0</div><div class="label">TAGEN</div></div>
-      <div class="col"><div id="h1" class="num">00</div><div class="label">STUNDEN</div></div>
-      <div class="col"><div id="m1" class="num">00</div><div class="label">MINUTEN</div></div>
-      <div class="col"><div id="s1" class="num">00</div><div class="label">SEKUNDEN</div></div>
+      <div class="col"><div id="y1" class="num">0</div><div id="ly1" class="label">JAHREN</div></div>
+      <div class="col"><div id="d1" class="num">0</div><div id="ld1" class="label">TAGEN</div></div>
+      <div class="col"><div id="h1" class="num">00</div><div id="lh1" class="label">STUNDEN</div></div>
+      <div class="col"><div id="m1" class="num">00</div><div id="lm1" class="label">MINUTEN</div></div>
+      <div class="col"><div id="s1" class="num">00</div><div id="ls1" class="label">SEKUNDEN</div></div>
     </div>
   </div>
 
   <div class="block">
     <h2>Very Severe ME seit:</h2>
     <div class="timer">
-      <div class="col"><div id="y2" class="num">0</div><div class="label">JAHREN</div></div>
-      <div class="col"><div id="d2" class="num">0</div><div class="label">TAGEN</div></div>
-      <div class="col"><div id="h2" class="num">00</div><div class="label">STUNDEN</div></div>
-      <div class="col"><div id="m2" class="num">00</div><div class="label">MINUTEN</div></div>
-      <div class="col"><div id="s2" class="num">00</div><div class="label">SEKUNDEN</div></div>
+      <div class="col"><div id="y2" class="num">0</div><div id="ly2" class="label">JAHREN</div></div>
+      <div class="col"><div id="d2" class="num">0</div><div id="ld2" class="label">TAGEN</div></div>
+      <div class="col"><div id="h2" class="num">00</div><div id="lh2" class="label">STUNDEN</div></div>
+      <div class="col"><div id="m2" class="num">00</div><div id="lm2" class="label">MINUTEN</div></div>
+      <div class="col"><div id="s2" class="num">00</div><div id="ls2" class="label">SEKUNDEN</div></div>
     </div>
   </div>
 
@@ -92,25 +108,46 @@
     const start2 = new Date("2023-12-23T16:30:00+01:00");
     const pad = n => String(n).padStart(2, "0");
 
-    function draw(now, start, id) {
-      let diff = Math.floor((now - start.getTime()) / 1000);
-      const yearDiff = nowDate => nowDate.getFullYear() - start.getFullYear() - (nowDate < new Date(start).setFullYear(nowDate.getFullYear()) ? 1 : 0);
+    const labels = {
+      jahr: ["JAHR", "JAHRE"],
+      tag: ["TAG", "TAGE"],
+      stunde: ["STUNDE", "STUNDEN"],
+      minute: ["MINUTE", "MINUTEN"],
+      sekunde: ["SEKUNDE", "SEKUNDEN"]
+    };
 
-      const years = yearDiff(new Date(now));
+    function pluralize(value, labelId, type) {
+      document.getElementById(labelId).textContent =
+        (value === 1 ? labels[type][0] : labels[type][1]).toUpperCase();
+    }
+
+    function draw(now, start, id) {
+      const nowDate = new Date(now);
+      let years = nowDate.getFullYear() - start.getFullYear();
+      const anniversary = new Date(start);
+      anniversary.setFullYear(start.getFullYear() + years);
+      if (nowDate < anniversary) years--;
+
       const startOfCurrentYear = new Date(start);
       startOfCurrentYear.setFullYear(start.getFullYear() + years);
+      const diffSec = Math.floor((now - startOfCurrentYear.getTime()) / 1000);
 
-      const secondsSinceYearStart = Math.floor((now - startOfCurrentYear.getTime()) / 1000);
-      const days = Math.floor(secondsSinceYearStart / 86400);
-      const hrs  = Math.floor((secondsSinceYearStart % 86400) / 3600);
-      const mins = Math.floor((secondsSinceYearStart % 3600) / 60);
-      const secs = secondsSinceYearStart % 60;
+      const days = Math.floor(diffSec / 86400);
+      const hrs  = Math.floor((diffSec % 86400) / 3600);
+      const mins = Math.floor((diffSec % 3600) / 60);
+      const secs = diffSec % 60;
 
       document.getElementById("y" + id).textContent = years;
       document.getElementById("d" + id).textContent = days;
       document.getElementById("h" + id).textContent = pad(hrs);
       document.getElementById("m" + id).textContent = pad(mins);
       document.getElementById("s" + id).textContent = pad(secs);
+
+      pluralize(years, "ly" + id, "jahr");
+      pluralize(days, "ld" + id, "tag");
+      pluralize(hrs, "lh" + id, "stunde");
+      pluralize(mins, "lm" + id, "minute");
+      pluralize(secs, "ls" + id, "sekunde");
     }
 
     function update() {
