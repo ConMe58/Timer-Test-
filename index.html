@@ -1,199 +1,163 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ME Timer</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ME Timer</title>
 
-  <meta name="color-scheme" content="light dark" />
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
 
-  <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #000000;
-      --muted: rgba(0,0,0,0.7);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #000000;
-        --fg: #ffffff;
-        --muted: rgba(255,255,255,0.7);
-      }
-    }
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --muted: rgba(0,0,0,0.7);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#000; --fg:#fff; --muted:rgba(255,255,255,0.7); }
+  }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 70px;
-      text-align: center;
-      padding: 20px;
-    }
+  html, body {
+    margin:0; height:100%;
+    background:var(--bg); color:var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:30px 10px; gap:40px;
+  }
 
-    h2 {
-      margin: 0 0 20px 0;
-      font-size: clamp(18px, 4vw, 30px);
-      font-weight: 700;
-    }
+  h1 { font-size:clamp(22px,5vw,32px); margin:0; }
 
-    .block {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: clamp(20px, 5vw, 60px);
-    }
+  .timerBlock {
+    border:1px solid var(--muted);
+    border-radius:12px; padding:16px 20px;
+    display:flex; flex-direction:column; align-items:center;
+    gap:16px; max-width:90%;
+  }
 
-    .years {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
+  .title { font-weight:700; font-size:clamp(18px,4vw,26px); text-align:center; }
 
-    .years .num {
-      font-size: clamp(50px, 14vw, 140px);
-      font-weight: 900;
-      line-height: 1;
-    }
+  .timer {
+    display:grid;
+    grid-template-columns:auto auto auto auto;
+    gap:14px; justify-content:center;
+  }
+  .col { display:flex; flex-direction:column; align-items:center; }
+  .num { font-size:clamp(24px,10vw,64px); font-weight:800; }
+  .label { font-size:clamp(10px,3vw,16px); color:var(--muted); }
 
-    .years .label {
-      font-size: clamp(12px, 3vw, 20px);
-      color: var(--muted);
-      margin-top: 6px;
-      text-transform: uppercase;
-    }
+  button {
+    background:none; border:1px solid var(--muted);
+    border-radius:6px; color:var(--fg);
+    padding:6px 12px; font-size:14px; cursor:pointer;
+  }
+  button:hover { opacity:0.8; }
 
-    .rest {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .row {
-      display: flex;
-      justify-content: center;
-      gap: clamp(20px, 6vw, 80px);
-    }
-
-    .col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .num {
-      font-size: clamp(24px, 9vw, 80px);
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .label {
-      font-size: clamp(12px, 3vw, 18px);
-      color: var(--muted);
-      margin-top: 4px;
-      text-transform: uppercase;
-    }
-  </style>
+  .controls {
+    display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+  }
+</style>
 </head>
 <body>
-  <div>
-    <h2>ME seit:</h2>
-    <div class="block">
-      <div class="years">
-        <div id="y1" class="num">0</div>
-        <div id="ly1" class="label">JAHRE</div>
+<h1>ME Timer</h1>
+<div id="container"></div>
+
+<div class="controls">
+  <button onclick="addTimer()">＋ Neuer Timer</button>
+  <button onclick="resetAll()">🗑️ Alle löschen</button>
+</div>
+
+<script>
+let timers = JSON.parse(localStorage.getItem("meTimers") || "[]");
+
+const container = document.getElementById("container");
+const pad = n => String(n).padStart(2,"0");
+
+function drawTimer(now, start, el) {
+  const diff = Math.floor((now - new Date(start).getTime()) / 1000);
+  const d = Math.floor(diff / 86400);
+  const h = Math.floor((diff % 86400) / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  el.querySelector(".d").textContent = d;
+  el.querySelector(".h").textContent = pad(h);
+  el.querySelector(".m").textContent = pad(m);
+  el.querySelector(".s").textContent = pad(s);
+}
+
+function renderTimers() {
+  container.innerHTML = "";
+  timers.forEach((t, i) => {
+    const block = document.createElement("div");
+    block.className = "timerBlock";
+    block.innerHTML = `
+      <div contenteditable="true" class="title" oninput="editTitle(${i}, this.textContent)">${t.title}</div>
+      <div class="timer">
+        <div class="col"><div class="num d">0</div><div class="label">TAGE</div></div>
+        <div class="col"><div class="num h">00</div><div class="label">STD</div></div>
+        <div class="col"><div class="num m">00</div><div class="label">MIN</div></div>
+        <div class="col"><div class="num s">00</div><div class="label">SEK</div></div>
       </div>
-      <div class="rest">
-        <div class="row">
-          <div class="col"><div id="d1" class="num">0</div><div id="ld1" class="label">TAGE</div></div>
-          <div class="col"><div id="h1" class="num">00</div><div id="lh1" class="label">STD</div></div>
-        </div>
-        <div class="row">
-          <div class="col"><div id="m1" class="num">00</div><div id="lm1" class="label">MIN</div></div>
-          <div class="col"><div id="s1" class="num">00</div><div id="ls1" class="label">SEK</div></div>
-        </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+        <input type="datetime-local" value="${t.start}" onchange="editDate(${i}, this.value)" />
+        <button onclick="deleteTimer(${i})">Löschen</button>
       </div>
-    </div>
-  </div>
+    `;
+    container.appendChild(block);
+  });
+}
 
-  <div>
-    <h2>Very Severe ME seit:</h2>
-    <div class="block">
-      <div class="years">
-        <div id="y2" class="num">0</div>
-        <div id="ly2" class="label">JAHRE</div>
-      </div>
-      <div class="rest">
-        <div class="row">
-          <div class="col"><div id="d2" class="num">0</div><div id="ld2" class="label">TAGE</div></div>
-          <div class="col"><div id="h2" class="num">00</div><div id="lh2" class="label">STD</div></div>
-        </div>
-        <div class="row">
-          <div class="col"><div id="m2" class="num">00</div><div id="lm2" class="label">MIN</div></div>
-          <div class="col"><div id="s2" class="num">00</div><div id="ls2" class="label">SEK</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
+function updateTimers() {
+  const now = Date.now();
+  document.querySelectorAll(".timerBlock").forEach((b, i)=>{
+    if (timers[i]) drawTimer(now, timers[i].start, b);
+  });
+}
 
-  <script>
-    const start1 = new Date("2022-12-10T12:00:00+01:00");
-    const start2 = new Date("2023-12-23T16:30:00+01:00");
-    const pad = n => String(n).padStart(2, "0");
+function addTimer() {
+  const title = prompt("Titel des neuen Timers:");
+  if (!title) return;
+  const date = prompt("Startdatum (YYYY-MM-DDTHH:MM, z.B. 2022-12-10T12:00):");
+  if (!date) return;
+  timers.push({title, start: date});
+  saveTimers();
+  renderTimers();
+}
 
-    function plural(num, singular, plural) {
-      return num === 1 ? singular : plural;
-    }
+function editTitle(i, txt) {
+  timers[i].title = txt.trim();
+  saveTimers();
+}
 
-    function draw(now, start, id) {
-      const nowDate = new Date(now);
-      let years = nowDate.getFullYear() - start.getFullYear();
-      const anniv = new Date(start);
-      anniv.setFullYear(start.getFullYear() + years);
-      if (nowDate < anniv) years--;
+function editDate(i, val) {
+  timers[i].start = val;
+  saveTimers();
+}
 
-      const startCurrent = new Date(start);
-      startCurrent.setFullYear(start.getFullYear() + years);
-      const diffSec = Math.floor((now - startCurrent.getTime()) / 1000);
+function deleteTimer(i) {
+  if (confirm("Timer wirklich löschen?")) {
+    timers.splice(i,1);
+    saveTimers();
+    renderTimers();
+  }
+}
 
-      const days = Math.floor(diffSec / 86400);
-      const hrs = Math.floor((diffSec % 86400) / 3600);
-      const mins = Math.floor((diffSec % 3600) / 60);
-      const secs = diffSec % 60;
+function resetAll() {
+  if (confirm("Wirklich ALLE Timer löschen?")) {
+    timers = [];
+    saveTimers();
+    renderTimers();
+  }
+}
 
-      document.getElementById("y" + id).textContent = years;
-      document.getElementById("ly" + id).textContent = plural(years, "Jahr", "Jahre").toUpperCase();
+function saveTimers() {
+  localStorage.setItem("meTimers", JSON.stringify(timers));
+}
 
-      document.getElementById("d" + id).textContent = days;
-      document.getElementById("ld" + id).textContent = plural(days, "Tag", "Tage").toUpperCase();
-
-      document.getElementById("h" + id).textContent = pad(hrs);
-      document.getElementById("lh" + id).textContent = plural(hrs, "Std", "Std").toUpperCase();
-
-      document.getElementById("m" + id).textContent = pad(mins);
-      document.getElementById("lm" + id).textContent = plural(mins, "Min", "Min").toUpperCase();
-
-      document.getElementById("s" + id).textContent = pad(secs);
-      document.getElementById("ls" + id).textContent = plural(secs, "Sek", "Sek").toUpperCase();
-    }
-
-    function update() {
-      const now = Date.now();
-      draw(now, start1, "1");
-      draw(now, start2, "2");
-    }
-
-    update();
-    setInterval(update, 1000);
-  </script>
+renderTimers();
+updateTimers();
+setInterval(updateTimers, 1000);
+</script>
 </body>
 </html>
