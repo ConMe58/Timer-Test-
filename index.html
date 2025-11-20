@@ -1,163 +1,602 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ME Timer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>ME Timer</title>
 
-<meta name="color-scheme" content="light dark" />
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+  <style>
+    /* ---------- Farb-Setup: Auto Dark / Light ---------- */
 
-<style>
-  :root {
-    --bg: #ffffff;
-    --fg: #000000;
-    --muted: rgba(0,0,0,0.7);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#000; --fg:#fff; --muted:rgba(255,255,255,0.7); }
-  }
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --muted: #6b7280;
+      --accent: #22c55e;
+      --overlay: rgba(0, 0, 0, 0.4);
+      --panel-bg: rgba(255, 255, 255, 0.97);
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
+      --border-subtle: rgba(15, 23, 42, 0.08);
+    }
 
-  html, body {
-    margin:0; height:100%;
-    background:var(--bg); color:var(--fg);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    display:flex; flex-direction:column; align-items:center;
-    padding:30px 10px; gap:40px;
-  }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --fg: #ffffff;
+        --muted: #9ca3af;
+        --accent: #22c55e;
+        --overlay: rgba(0, 0, 0, 0.65);
+        --panel-bg: rgba(15, 23, 42, 0.98);
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.8);
+        --border-subtle: rgba(148, 163, 184, 0.12);
+      }
+    }
 
-  h1 { font-size:clamp(22px,5vw,32px); margin:0; }
+    /* ---------- Basislayout ---------- */
 
-  .timerBlock {
-    border:1px solid var(--muted);
-    border-radius:12px; padding:16px 20px;
-    display:flex; flex-direction:column; align-items:center;
-    gap:16px; max-width:90%;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  .title { font-weight:700; font-size:clamp(18px,4vw,26px); text-align:center; }
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
 
-  .timer {
-    display:grid;
-    grid-template-columns:auto auto auto auto;
-    gap:14px; justify-content:center;
-  }
-  .col { display:flex; flex-direction:column; align-items:center; }
-  .num { font-size:clamp(24px,10vw,64px); font-weight:800; }
-  .label { font-size:clamp(10px,3vw,16px); color:var(--muted); }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
 
-  button {
-    background:none; border:1px solid var(--muted);
-    border-radius:6px; color:var(--fg);
-    padding:6px 12px; font-size:14px; cursor:pointer;
-  }
-  button:hover { opacity:0.8; }
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6vh 20px 7vh;
+    }
 
-  .controls {
-    display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
-  }
-</style>
+    main {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* ---------- Menü-Button oben links ---------- */
+
+    .menu-toggle {
+      position: fixed;
+      top: 14px;
+      left: 16px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.04);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 40;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .menu-toggle span {
+      display: block;
+      width: 16px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--fg);
+      position: relative;
+    }
+
+    .menu-toggle span::before,
+    .menu-toggle span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 16px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--fg);
+    }
+
+    .menu-toggle span::before {
+      top: -5px;
+    }
+
+    .menu-toggle span::after {
+      top: 5px;
+    }
+
+    .menu-toggle:active {
+      transform: scale(0.94);
+    }
+
+    /* ---------- Timer-Anzeige ---------- */
+
+    .timer {
+      margin-bottom: 52px;
+    }
+
+    .timer:last-child {
+      margin-bottom: 0;
+    }
+
+    .timer-title {
+      margin: 0 0 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+    }
+
+    .timer-row {
+      display: flex;
+      justify-content: center;
+      gap: clamp(10px, 2.8vw, 18px);
+      flex-wrap: wrap;
+    }
+
+    .timer-unit {
+      min-width: clamp(68px, 16vw, 86px);
+    }
+
+    .timer-value {
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+      font-size: clamp(2.6rem, 7.4vw, 3.6rem);
+      line-height: 1.1;
+    }
+
+    .timer-label {
+      margin-top: 6px;
+      font-size: 0.68rem;
+      letter-spacing: 0.21em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ---------- Seitenleiste (Timer-Verwaltung) ---------- */
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+      z-index: 45;
+    }
+
+    body.sidebar-open .backdrop {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: min(320px, 80vw);
+      transform: translateX(-100%);
+      transition: transform 0.22s ease-out;
+      z-index: 50;
+      display: flex;
+    }
+
+    body.sidebar-open .sidebar {
+      transform: translateX(0);
+    }
+
+    .sidebar-inner {
+      background: var(--panel-bg);
+      color: var(--fg);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 20px;
+      border-right: 1px solid var(--border-subtle);
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    .sidebar-inner h2 {
+      margin: 4px 0 4px;
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-hint {
+      margin: 0 0 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .timer-item {
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      padding: 10px 10px 12px;
+      margin-top: 10px;
+    }
+
+    .timer-item label {
+      display: block;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .timer-item input[type="text"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 7px;
+      font-size: 0.86rem;
+      background: rgba(15, 23, 42, 0.02);
+      color: var(--fg);
+      outline: none;
+    }
+
+    .timer-item input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.35);
+      background: rgba(15, 23, 42, 0.05);
+    }
+
+    .timer-item + .timer-item {
+      margin-top: 10px;
+    }
+
+    .timer-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.05);
+      color: var(--fg);
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+    }
+
+    .btn-primary {
+      border-color: rgba(34, 197, 94, 0.8);
+      background: rgba(34, 197, 94, 0.12);
+    }
+
+    .btn-danger {
+      border-color: rgba(248, 113, 113, 0.9);
+      background: rgba(248, 113, 113, 0.12);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    #addTimerBtn {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .sidebar-inner {
+        padding-inline: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-<h1>ME Timer</h1>
-<div id="container"></div>
+  <!-- Menü-Button -->
+  <div class="menu-toggle" id="menuToggle" aria-label="Timer-Einstellungen öffnen">
+    <span></span>
+  </div>
 
-<div class="controls">
-  <button onclick="addTimer()">＋ Neuer Timer</button>
-  <button onclick="resetAll()">🗑️ Alle löschen</button>
-</div>
+  <!-- Hauptinhalt -->
+  <div class="page">
+    <main id="timers"></main>
+  </div>
 
-<script>
-let timers = JSON.parse(localStorage.getItem("meTimers") || "[]");
+  <!-- Seitenleiste & Hintergrund -->
+  <div class="backdrop" id="backdrop"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <h2>Timer verwalten</h2>
+      <p class="sidebar-hint">Startzeit im Format <strong>TT.MM.JJJJ HH:MM</strong></p>
+      <div id="timerList"></div>
+      <button class="btn btn-primary" id="addTimerBtn">+ Neuen Timer hinzufügen</button>
+    </div>
+  </aside>
 
-const container = document.getElementById("container");
-const pad = n => String(n).padStart(2,"0");
+  <script>
+    // ---------- Daten & Storage ----------
 
-function drawTimer(now, start, el) {
-  const diff = Math.floor((now - new Date(start).getTime()) / 1000);
-  const d = Math.floor(diff / 86400);
-  const h = Math.floor((diff % 86400) / 3600);
-  const m = Math.floor((diff % 3600) / 60);
-  const s = diff % 60;
-  el.querySelector(".d").textContent = d;
-  el.querySelector(".h").textContent = pad(h);
-  el.querySelector(".m").textContent = pad(m);
-  el.querySelector(".s").textContent = pad(s);
-}
+    const STORAGE_KEY = "meTimersV1";
 
-function renderTimers() {
-  container.innerHTML = "";
-  timers.forEach((t, i) => {
-    const block = document.createElement("div");
-    block.className = "timerBlock";
-    block.innerHTML = `
-      <div contenteditable="true" class="title" oninput="editTitle(${i}, this.textContent)">${t.title}</div>
-      <div class="timer">
-        <div class="col"><div class="num d">0</div><div class="label">TAGE</div></div>
-        <div class="col"><div class="num h">00</div><div class="label">STD</div></div>
-        <div class="col"><div class="num m">00</div><div class="label">MIN</div></div>
-        <div class="col"><div class="num s">00</div><div class="label">SEK</div></div>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-        <input type="datetime-local" value="${t.start}" onchange="editDate(${i}, this.value)" />
-        <button onclick="deleteTimer(${i})">Löschen</button>
-      </div>
-    `;
-    container.appendChild(block);
-  });
-}
+    let timers = [];
 
-function updateTimers() {
-  const now = Date.now();
-  document.querySelectorAll(".timerBlock").forEach((b, i)=>{
-    if (timers[i]) drawTimer(now, timers[i].start, b);
-  });
-}
+    function defaultTimers() {
+      const now = new Date();
+      const iso = now.toISOString();
+      return [
+        { label: "ME seit:", startISO: iso },
+        { label: "Very Severe ME seit:", startISO: iso },
+        { label: "Bett nicht verlassen seit:", startISO: iso }
+      ];
+    }
 
-function addTimer() {
-  const title = prompt("Titel des neuen Timers:");
-  if (!title) return;
-  const date = prompt("Startdatum (YYYY-MM-DDTHH:MM, z.B. 2022-12-10T12:00):");
-  if (!date) return;
-  timers.push({title, start: date});
-  saveTimers();
-  renderTimers();
-}
+    function loadTimers() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          timers = defaultTimers();
+          saveTimers();
+        } else {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) {
+            timers = parsed;
+          } else {
+            timers = defaultTimers();
+          }
+        }
+      } catch (e) {
+        console.error("Konnte Timer nicht laden:", e);
+        timers = defaultTimers();
+      }
+    }
 
-function editTitle(i, txt) {
-  timers[i].title = txt.trim();
-  saveTimers();
-}
+    function saveTimers() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(timers));
+      } catch (e) {
+        console.error("Konnte Timer nicht speichern:", e);
+      }
+    }
 
-function editDate(i, val) {
-  timers[i].start = val;
-  saveTimers();
-}
+    // ---------- Datums-Helfer ----------
 
-function deleteTimer(i) {
-  if (confirm("Timer wirklich löschen?")) {
-    timers.splice(i,1);
-    saveTimers();
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    // Erwartet "TT.MM.JJJJ HH:MM"
+    function parseDateString(str) {
+      if (!str) return null;
+      const s = str.trim();
+      const m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})$/);
+      if (!m) return null;
+      const day = Number(m[1]);
+      const month = Number(m[2]) - 1;
+      const year = Number(m[3]);
+      const hour = Number(m[4]);
+      const minute = Number(m[5]);
+
+      const d = new Date(year, month, day, hour, minute, 0);
+      if (isNaN(d.getTime())) return null;
+      return d;
+    }
+
+    function formatDateForInput(isoString) {
+      if (!isoString) return "";
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return "";
+      const day = pad(d.getDate());
+      const month = pad(d.getMonth() + 1);
+      const year = d.getFullYear();
+      const hour = pad(d.getHours());
+      const minute = pad(d.getMinutes());
+      return `${day}.${month}.${year} ${hour}:${minute}`;
+    }
+
+    // ---------- Rendering Timer-Anzeige ----------
+
+    const timersContainer = document.getElementById("timers");
+
+    function renderTimers() {
+      timersContainer.innerHTML = "";
+      timers.forEach((t, index) => {
+        const section = document.createElement("section");
+        section.className = "timer";
+
+        const title = document.createElement("h2");
+        title.className = "timer-title";
+        title.textContent = t.label || `Timer ${index + 1}`;
+        section.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "timer-row";
+
+        const units = ["days", "hours", "minutes", "seconds"];
+        const labels = ["Tagen", "Stunden", "Minuten", "Sekunden"];
+
+        units.forEach((unit, i) => {
+          const unitDiv = document.createElement("div");
+          unitDiv.className = "timer-unit";
+
+          const value = document.createElement("div");
+          value.className = "timer-value";
+          value.dataset.index = index;
+          value.dataset.unit = unit;
+          value.textContent = "00";
+
+          const label = document.createElement("div");
+          label.className = "timer-label";
+          label.textContent = labels[i].toUpperCase();
+
+          unitDiv.appendChild(value);
+          unitDiv.appendChild(label);
+          row.appendChild(unitDiv);
+        });
+
+        section.appendChild(row);
+        timersContainer.appendChild(section);
+      });
+    }
+
+    function updateTimers() {
+      const now = new Date();
+      timers.forEach((t, index) => {
+        const start = new Date(t.startISO);
+        if (isNaN(start.getTime())) return;
+
+        let totalSeconds = Math.floor((now - start) / 1000);
+        if (totalSeconds < 0) totalSeconds = 0;
+
+        const days = Math.floor(totalSeconds / 86400);
+        totalSeconds %= 86400;
+        const hours = Math.floor(totalSeconds / 3600);
+        totalSeconds %= 3600;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+
+        const mapping = {
+          days,
+          hours,
+          minutes,
+          seconds
+        };
+
+        ["days", "hours", "minutes", "seconds"].forEach(unit => {
+          const el = document.querySelector(`.timer-value[data-index="${index}"][data-unit="${unit}"]`);
+          if (el) {
+            const value = unit === "days" ? String(mapping[unit]) : pad(mapping[unit]);
+            el.textContent = value;
+          }
+        });
+      });
+    }
+
+    // ---------- Seitenleiste (Verwaltung) ----------
+
+    const timerListEl = document.getElementById("timerList");
+    const addTimerBtn = document.getElementById("addTimerBtn");
+
+    function renderSidebar() {
+      timerListEl.innerHTML = "";
+      timers.forEach((t, index) => {
+        const item = document.createElement("div");
+        item.className = "timer-item";
+
+        const labelTitle = document.createElement("label");
+        labelTitle.textContent = "Titel";
+        const inputTitle = document.createElement("input");
+        inputTitle.type = "text";
+        inputTitle.value = t.label || `Timer ${index + 1}`;
+        inputTitle.addEventListener("change", () => {
+          timers[index].label = inputTitle.value.trim() || `Timer ${index + 1}`;
+          saveTimers();
+          renderTimers();
+        });
+
+        const labelDate = document.createElement("label");
+        labelDate.style.marginTop = "6px";
+        labelDate.textContent = "Start (TT.MM.JJJJ HH:MM)";
+        const inputDate = document.createElement("input");
+        inputDate.type = "text";
+        inputDate.placeholder = "01.01.2020 12:00";
+        inputDate.value = formatDateForInput(t.startISO);
+        inputDate.addEventListener("change", () => {
+          const parsed = parseDateString(inputDate.value);
+          if (!parsed) {
+            alert("Datum/Zeit nicht erkannt. Bitte Format TT.MM.JJJJ HH:MM verwenden.");
+            inputDate.value = formatDateForInput(timers[index].startISO);
+            return;
+          }
+          timers[index].startISO = parsed.toISOString();
+          saveTimers();
+          renderTimers();
+        });
+
+        const actions = document.createElement("div");
+        actions.className = "timer-actions";
+
+        const btnSaveNow = document.createElement("button");
+        btnSaveNow.className = "btn";
+        btnSaveNow.textContent = "Start = jetzt";
+        btnSaveNow.addEventListener("click", () => {
+          const now = new Date();
+          timers[index].startISO = now.toISOString();
+          inputDate.value = formatDateForInput(timers[index].startISO);
+          saveTimers();
+          renderTimers();
+        });
+
+        const btnDelete = document.createElement("button");
+        btnDelete.className = "btn btn-danger";
+        btnDelete.textContent = "Löschen";
+        btnDelete.addEventListener("click", () => {
+          if (confirm(`Timer "${t.label}" wirklich löschen?`)) {
+            timers.splice(index, 1);
+            saveTimers();
+            renderTimers();
+            renderSidebar();
+          }
+        });
+
+        actions.appendChild(btnSaveNow);
+        actions.appendChild(btnDelete);
+
+        item.appendChild(labelTitle);
+        item.appendChild(inputTitle);
+        item.appendChild(labelDate);
+        item.appendChild(inputDate);
+        item.appendChild(actions);
+
+        timerListEl.appendChild(item);
+      });
+    }
+
+    addTimerBtn.addEventListener("click", () => {
+      const now = new Date();
+      timers.push({
+        label: "Neuer Timer",
+        startISO: now.toISOString()
+      });
+      saveTimers();
+      renderTimers();
+      renderSidebar();
+    });
+
+    // ---------- Menü öffnen/schließen ----------
+
+    const menuToggle = document.getElementById("menuToggle");
+    const backdrop = document.getElementById("backdrop");
+
+    function toggleSidebar(forceState) {
+      if (typeof forceState === "boolean") {
+        document.body.classList.toggle("sidebar-open", forceState);
+      } else {
+        document.body.classList.toggle("sidebar-open");
+      }
+    }
+
+    menuToggle.addEventListener("click", () => toggleSidebar());
+    backdrop.addEventListener("click", () => toggleSidebar(false));
+
+    // ---------- Init ----------
+
+    loadTimers();
     renderTimers();
-  }
-}
-
-function resetAll() {
-  if (confirm("Wirklich ALLE Timer löschen?")) {
-    timers = [];
-    saveTimers();
-    renderTimers();
-  }
-}
-
-function saveTimers() {
-  localStorage.setItem("meTimers", JSON.stringify(timers));
-}
-
-renderTimers();
-updateTimers();
-setInterval(updateTimers, 1000);
-</script>
+    renderSidebar();
+    updateTimers();
+    setInterval(updateTimers, 1000);
+  </script>
 </body>
 </html>
