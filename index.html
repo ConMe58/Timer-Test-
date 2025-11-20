@@ -2,82 +2,82 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
   <title>ME Timer</title>
 
   <style>
-    /* ---------- Farb-Setup: Auto Dark / Light ---------- */
-
+    /* -------------------------------------
+       iOS Farbdesign — exakt wie native Apps
+       ------------------------------------- */
     :root {
       --bg: #ffffff;
       --fg: #000000;
-      --muted: #6b7280;
-      --accent: #22c55e;
-      --overlay: rgba(0, 0, 0, 0.4);
-      --panel-bg: rgba(255, 255, 255, 0.97);
-      --shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
-      --border-subtle: rgba(15, 23, 42, 0.1);
+      --secondary: #6b7280;
+      --separator: rgba(0,0,0,0.12);
+      --accent: #30d158; /* Apple Grün */
+      --blur-bg: rgba(255,255,255,0.7);
+      --sidebar-bg: rgba(250,250,250,0.9);
+      --shadow: 0 8px 28px rgba(0,0,0,0.18);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #000000;
         --fg: #ffffff;
-        --muted: #9ca3af;
-        --accent: #22c55e;
-        --overlay: rgba(0, 0, 0, 0.65);
-        --panel-bg: rgba(15, 23, 42, 0.98);
-        --shadow: 0 18px 50px rgba(0, 0, 0, 0.8);
-        --border-subtle: rgba(148, 163, 184, 0.16);
+        --secondary: #8e8e93; /* iOS secondaryLabel dark */
+        --separator: rgba(255,255,255,0.16);
+        --blur-bg: rgba(0,0,0,0.55);
+        --sidebar-bg: rgba(22,22,25,0.9);
+        --shadow: 0 8px 32px rgba(0,0,0,0.75);
       }
     }
 
-    /* ---------- Basislayout ---------- */
-
+    /* -------------------------------
+       Basislayout (iOS spacing system)
+       ------------------------------- */
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 0;
       background: var(--bg);
       color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     .page {
-      min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 6vh 20px 7vh;
+      padding: 40px 16px 60px;
     }
 
     main {
       width: 100%;
-      max-width: 640px;
+      max-width: 600px;
     }
 
-    /* ---------- Menü-Button ---------- */
-
+    /* -----------------------
+       iOS Menü-Button links
+       ----------------------- */
     .menu-toggle {
       position: fixed;
-      top: 14px;
+      top: calc(12px + env(safe-area-inset-top));
       left: 16px;
       width: 34px;
       height: 34px;
-      border-radius: 999px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(14px);
+      background: var(--blur-bg);
+      border: 1px solid var(--separator);
       cursor: pointer;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.08);
-      backdrop-filter: blur(10px);
-      z-index: 40;
+      z-index: 50;
       transition: 0.15s ease;
     }
 
@@ -85,37 +85,38 @@
     .menu-toggle span::before,
     .menu-toggle span::after {
       display: block;
-      width: 16px;
+      width: 18px;
       height: 2px;
-      border-radius: 999px;
       background: var(--fg);
+      border-radius: 999px;
       content: "";
     }
 
     .menu-toggle span { position: relative; }
-    .menu-toggle span::before { position: absolute; top: -5px; left: 0; }
-    .menu-toggle span::after  { position: absolute; top:  5px; left: 0; }
+    .menu-toggle span::before { position: absolute; top: -6px; }
+    .menu-toggle span::after  { position: absolute; top:  6px; }
 
-    .menu-toggle:active { transform: scale(0.94); }
+    .menu-toggle:active { transform: scale(0.92); }
 
-    /* ---------- Timer ---------- */
-
-    .timer { margin-bottom: 52px; }
-    .timer:last-child { margin-bottom: 0; }
+    /* -----------------------
+       Timer Anzeige (iOS big)
+       ----------------------- */
+    .timer {
+      margin-bottom: 56px;
+    }
 
     .timer-title {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       text-align: center;
       font-weight: 700;
-      letter-spacing: 0.02em;
-      font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+      font-size: clamp(1.6rem, 3vw, 2rem);
+      letter-spacing: -0.01em;
     }
 
     .timer-row {
       display: flex;
       justify-content: center;
-      gap: clamp(16px, 4vw, 28px);
-      flex-wrap: nowrap;
+      gap: clamp(18px, 4vw, 32px);
     }
 
     .timer-unit { text-align: center; }
@@ -123,32 +124,32 @@
     .timer-value {
       font-weight: 800;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.06em;
-      font-size: clamp(2.7rem, 8vw, 3.8rem);
-      line-height: 1.1;
+      font-size: clamp(2.8rem, 8vw, 4rem);
+      line-height: 1.08;
+      letter-spacing: 0.02em;
     }
 
     .timer-label {
-      margin-top: 4px;
-      font-size: 0.74rem;
-      letter-spacing: 0.18em;
+      margin-top: 5px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--secondary);
       text-transform: uppercase;
-      font-weight: 600;
-      color: var(--muted);
-      opacity: 0.92;
-      text-align: center;
+      letter-spacing: 0.13em;
     }
 
-    /* ---------- Seitenleiste ---------- */
-
+    /* --------------------------
+       Sidebar (iOS Settings Look)
+       -------------------------- */
     .backdrop {
       position: fixed;
       inset: 0;
-      background: var(--overlay);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(4px);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.18s ease;
-      z-index: 45;
+      transition: 0.18s ease;
+      z-index: 40;
     }
 
     body.sidebar-open .backdrop {
@@ -159,115 +160,111 @@
     .sidebar {
       position: fixed;
       inset: 0 auto 0 0;
-      width: min(320px, 82vw);
+      width: min(330px, 80vw);
       transform: translateX(-100%);
-      transition: 0.22s ease-out;
+      transition: 0.22s cubic-bezier(.25,.8,.25,1);
       z-index: 50;
       display: flex;
     }
 
-    body.sidebar-open .sidebar { transform: translateX(0); }
+    body.sidebar-open .sidebar {
+      transform: translateX(0);
+    }
 
     .sidebar-inner {
-      background: var(--panel-bg);
-      color: var(--fg);
-      box-shadow: var(--shadow);
-      padding: 18px 18px 20px;
-      border-right: 1px solid var(--border-subtle);
-      overflow-y: auto;
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(28px);
       width: 100%;
+      padding: 22px 18px 40px;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      border-right: 1px solid var(--separator);
     }
 
     .sidebar-inner h2 {
-      margin: 4px 0 4px;
-      font-size: 1.05rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+      letter-spacing: 0.02em;
     }
 
     .sidebar-hint {
-      margin: 0 0 10px;
-      font-size: 0.78rem;
-      color: var(--muted);
+      color: var(--secondary);
+      font-size: 0.75rem;
+      margin: 0 0 12px;
     }
 
     .timer-item {
-      border-radius: 12px;
-      border: 1px solid var(--border-subtle);
-      padding: 10px 10px 12px;
-      margin-top: 10px;
+      background: var(--blur-bg);
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 14px;
+      border: 1px solid var(--separator);
+      backdrop-filter: blur(20px);
     }
 
-    .timer-item label {
-      display: block;
-      font-size: 0.72rem;
+    label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--secondary);
       text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--muted);
+      letter-spacing: 0.12em;
       margin-bottom: 4px;
+      display: block;
     }
 
-    .timer-item input[type="text"] {
+    input[type=text] {
       width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border-subtle);
-      padding: 6px 7px;
-      font-size: 0.86rem;
-      background: rgba(15, 23, 42, 0.04);
+      font-size: 0.92rem;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--separator);
+      background: rgba(255,255,255,0.1);
       color: var(--fg);
-      outline: none;
-    }
-
-    .timer-item input[type="text"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
-      background: rgba(15, 23, 42, 0.07);
     }
 
     .timer-actions {
       display: flex;
       gap: 8px;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     .btn {
       flex: 1;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.06);
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
       color: var(--fg);
-      font-size: 0.8rem;
-      padding: 6px 10px;
+      font-size: 0.85rem;
+      border: 1px solid var(--separator);
+      backdrop-filter: blur(12px);
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.12s ease;
+      transition: 0.15s ease;
+    }
+
+    .btn:active { transform: scale(0.94); }
+
+    .btn-danger {
+      background: rgba(255,69,58,0.18);
+      border-color: rgba(255,69,58,0.45);
     }
 
     .btn-primary {
-      border-color: rgba(34, 197, 94, 0.85);
-      background: rgba(34, 197, 94, 0.13);
+      background: rgba(48,209,88,0.18);
+      border-color: rgba(48,209,88,0.45);
     }
 
-    .btn-danger {
-      border-color: rgba(248, 113, 113, 0.85);
-      background: rgba(248, 113, 113, 0.13);
+    #addTimerBtn {
+      width: 100%;
+      margin-top: 18px;
     }
-
-    .btn:active { transform: scale(0.96); }
-
-    #addTimerBtn { width: 100%; margin-top: 16px; }
   </style>
 </head>
 <body>
 
-  <!-- Menü-Button -->
-  <div class="menu-toggle" id="menuToggle">
-    <span></span>
-  </div>
+  <!-- Menü Button -->
+  <div class="menu-toggle" id="menuToggle"><span></span></div>
 
-  <!-- Inhalt -->
   <div class="page">
     <main id="timers"></main>
   </div>
@@ -284,17 +281,32 @@
   </aside>
 
   <script>
-    const STORAGE_KEY = "meTimersV1";
-
+    /* -------------------------
+       Storage + Standard-Timer
+       ------------------------- */
+    const STORAGE_KEY = "meTimersV3";
     let timers = [];
 
     function loadTimers() {
       const raw = localStorage.getItem(STORAGE_KEY);
+
       if (!raw) {
-        timers = [];
+        // Standard Timer erzeugen
+        const now = new Date().toISOString();
+        timers = [
+          { label: "ME seit:", startISO: now },
+          { label: "Very Severe ME seit:", startISO: now },
+          { label: "Bett nicht verlassen seit:", startISO: now }
+        ];
         saveTimers();
-      } else {
+        return;
+      }
+
+      try {
         timers = JSON.parse(raw);
+        if (!Array.isArray(timers)) timers = [];
+      } catch {
+        timers = [];
       }
     }
 
@@ -302,59 +314,65 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timers));
     }
 
+    /* -------------------------
+       Datum Parsing
+       ------------------------- */
     function pad(n) { return String(n).padStart(2, "0"); }
 
-    function parseDateString(str) {
+    function parseDate(str) {
       const m = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})$/);
       if (!m) return null;
-      const d = new Date(+m[3], m[2] - 1, +m[1], +m[4], +m[5]);
+      const d = new Date(+m[3], m[2]-1, +m[1], +m[4], +m[5]);
       return isNaN(d) ? null : d;
     }
 
-    function formatInputDate(iso) {
+    function formatInput(iso) {
       const d = new Date(iso);
       return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    const timersContainer = document.getElementById("timers");
+    /* -------------------------
+       Timer Rendering
+       ------------------------- */
+    const timersEl = document.getElementById("timers");
 
     function renderTimers() {
-      timersContainer.innerHTML = "";
+      timersEl.innerHTML = "";
 
       timers.forEach((t, index) => {
-        const section = document.createElement("section");
-        section.className = "timer";
+        const s = document.createElement("section");
+        s.className = "timer";
 
         const title = document.createElement("h2");
         title.className = "timer-title";
-        title.textContent = t.label || "Timer";
-        section.appendChild(title);
+        title.textContent = t.label;
+        s.appendChild(title);
 
         const row = document.createElement("div");
         row.className = "timer-row";
 
-        ["days", "hours", "minutes", "seconds"].forEach(unit => {
+        ["days","hours","minutes","seconds"].forEach(unit => {
           const unitDiv = document.createElement("div");
           unitDiv.className = "timer-unit";
 
-          const value = document.createElement("div");
-          value.className = "timer-value";
-          value.dataset.index = index;
-          value.dataset.unit = unit;
-          value.textContent = "00";
+          const val = document.createElement("div");
+          val.className = "timer-value";
+          val.dataset.index = index;
+          val.dataset.unit = unit;
+          val.textContent = "00";
 
-          const label = document.createElement("div");
-          label.className = "timer-label";
-          label.dataset.index = index;
-          label.dataset.unit = unit;
+          const lab = document.createElement("div");
+          lab.className = "timer-label";
+          lab.dataset.index = index;
+          lab.dataset.unit = unit;
 
-          unitDiv.appendChild(value);
-          unitDiv.appendChild(label);
+          unitDiv.appendChild(val);
+          unitDiv.appendChild(lab);
           row.appendChild(unitDiv);
         });
 
-        section.appendChild(row);
-        timersContainer.appendChild(section);
+        s.appendChild(row);
+        timersEl.appendChild(s);
       });
     }
 
@@ -375,42 +393,40 @@
     function updateTimers() {
       const now = new Date();
 
-      timers.forEach((t, index) => {
+      timers.forEach((t,index) => {
         const start = new Date(t.startISO);
         let sec = Math.floor((now - start) / 1000);
         if (sec < 0) sec = 0;
 
-        const days = Math.floor(sec / 86400); sec %= 86400;
-        const hours = Math.floor(sec / 3600); sec %= 3600;
-        const minutes = Math.floor(sec / 60);
-        const seconds = sec % 60;
+        const d = Math.floor(sec / 86400); sec %= 86400;
+        const h = Math.floor(sec / 3600); sec %= 3600;
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
 
-        const values = { days, hours, minutes, seconds };
+        const data = { days: d, hours: h, minutes: m, seconds: s };
 
         for (const unit of ["days","hours","minutes","seconds"]) {
-          const v = values[unit];
+          const num = data[unit];
 
-          const el = document.querySelector(`.timer-value[data-index="${index}"][data-unit="${unit}"]`);
-          if (el) el.textContent = unit === "days" ? String(v) : pad(v);
+          const v = document.querySelector(`.timer-value[data-index="${index}"][data-unit="${unit}"]`);
+          if (v) v.textContent = (unit === "days") ? num : pad(num);
 
-          const label = document.querySelector(`.timer-label[data-index="${index}"][data-unit="${unit}"]`);
-          if (label) {
-            const text = (v === 1 ? singular[unit] : plural[unit]).toUpperCase();
-            label.textContent = text;
-          }
+          const lbl = document.querySelector(`.timer-label[data-index="${index}"][data-unit="${unit}"]`);
+          if (lbl) lbl.textContent = (num === 1 ? singular[unit] : plural[unit]).toUpperCase();
         }
       });
     }
 
-    /* ---------- Sidebar ---------- */
-
-    const timerList = document.getElementById("timerList");
-    const addTimerBtn = document.getElementById("addTimerBtn");
+    /* -------------------------
+       Sidebar Rendering
+       ------------------------- */
+    const listEl = document.getElementById("timerList");
+    const addBtn = document.getElementById("addTimerBtn");
 
     function renderSidebar() {
-      timerList.innerHTML = "";
+      listEl.innerHTML = "";
 
-      timers.forEach((t, index) => {
+      timers.forEach((t,index) => {
         const item = document.createElement("div");
         item.className = "timer-item";
 
@@ -420,21 +436,20 @@
         inp1.type = "text";
         inp1.value = t.label;
         inp1.onchange = () => {
-          timers[index].label = inp1.value || "Timer";
+          timers[index].label = inp1.value.trim() || "Timer";
           saveTimers();
           renderTimers();
         };
 
         const l2 = document.createElement("label");
         l2.textContent = "Startzeit";
-
         const inp2 = document.createElement("input");
         inp2.type = "text";
-        inp2.value = formatInputDate(t.startISO);
+        inp2.value = formatInput(t.startISO);
         inp2.onchange = () => {
-          const d = parseDateString(inp2.value);
-          if (!d) return alert("Format: TT.MM.JJJJ HH:MM");
-          t.startISO = d.toISOString();
+          const d = parseDate(inp2.value);
+          if (!d) return alert("Bitte Format: TT.MM.JJJJ HH:MM");
+          timers[index].startISO = d.toISOString();
           saveTimers();
           renderTimers();
         };
@@ -447,8 +462,8 @@
         nowBtn.textContent = "Start = jetzt";
         nowBtn.onclick = () => {
           const d = new Date();
-          t.startISO = d.toISOString();
-          inp2.value = formatInputDate(t.startISO);
+          timers[index].startISO = d.toISOString();
+          inp2.value = formatInput(timers[index].startISO);
           saveTimers();
           renderTimers();
         };
@@ -458,10 +473,10 @@
         delBtn.textContent = "Löschen";
         delBtn.onclick = () => {
           if (confirm("Timer löschen?")) {
-            timers.splice(index, 1);
+            timers.splice(index,1);
             saveTimers();
-            renderTimers();
             renderSidebar();
+            renderTimers();
           }
         };
 
@@ -474,21 +489,24 @@
         item.appendChild(inp2);
         item.appendChild(actions);
 
-        timerList.appendChild(item);
+        listEl.appendChild(item);
       });
     }
 
-    /* ---------- Sidebar Toggle ---------- */
+    /* -------------------------
+       Sidebar toggle
+       ------------------------- */
+    document.getElementById("menuToggle").onclick = () => {
+      document.body.classList.toggle("sidebar-open");
+    };
 
-    const menuToggle = document.getElementById("menuToggle");
-    const backdrop = document.getElementById("backdrop");
-    const sidebar = document.getElementById("sidebar");
+    document.getElementById("backdrop").onclick = () => {
+      document.body.classList.remove("sidebar-open");
+    };
 
-    menuToggle.onclick = () => { document.body.classList.toggle("sidebar-open"); };
-    backdrop.onclick = () => { document.body.classList.remove("sidebar-open"); };
-
-    /* ---------- Init ---------- */
-
+    /* -------------------------
+       Init
+       ------------------------- */
     loadTimers();
     renderTimers();
     renderSidebar();
